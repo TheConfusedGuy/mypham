@@ -7,5 +7,8 @@ function required(name: string, value: string | undefined, defaultValue: string 
 }
 
 export const env = {
-  apiBaseUrl: required("NEXT_PUBLIC_API_BASE_URL", process.env.NEXT_PUBLIC_API_BASE_URL),
+  apiBaseUrl: required(
+    "NEXT_PUBLIC_API_BASE_URL",
+    process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL
+  ),
 } as const;
