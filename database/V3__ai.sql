@@ -1,24 +1,16 @@
 -- Sprint 2 — AI / RAG schema (theo plan §1.2)
--- Chạy SAU khi đã CREATE EXTENSION vector
--- (xem docs/SETUP-AI.md)
-
-CREATE EXTENSION IF NOT EXISTS vector;
+-- Thay thế pgvector bằng double precision[] cho tương thích môi trường Windows không cài được extension.
 
 -- ====== Embeddings sản phẩm ======
 CREATE TABLE IF NOT EXISTS product_embeddings (
     san_pham_id BIGINT PRIMARY KEY REFERENCES san_pham(id) ON DELETE CASCADE,
-    embedding   vector(768) NOT NULL,
+    embedding   double precision[] NOT NULL,
     -- model name + version để biết khi nào re-ingest
     model       VARCHAR(50) NOT NULL DEFAULT 'text-embedding-004',
     -- text gốc đã embed (debug + so sánh)
     source_text TEXT,
     updated_at  TIMESTAMPTZ DEFAULT now()
 );
-
--- HNSW index cho cosine similarity — fast retrieve
-CREATE INDEX IF NOT EXISTS idx_product_embeddings_hnsw
-    ON product_embeddings
-    USING hnsw (embedding vector_cosine_ops);
 
 -- ====== Chat sessions ======
 CREATE TABLE IF NOT EXISTS chat_sessions (

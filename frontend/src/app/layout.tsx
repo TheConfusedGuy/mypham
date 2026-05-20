@@ -19,7 +19,7 @@ const geist = Geist({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  let tenCuaHang = "Ngọc Lan Beauty";
+  let tenCuaHang = "Simply Beauty";
   try {
     const cfg = await storeConfigApi.get();
     if (cfg?.tenCuaHang) tenCuaHang = cfg.tenCuaHang;

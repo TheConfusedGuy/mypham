@@ -19,6 +19,8 @@ export type Order = {
   trangThai: OrderStatus;
   diaChiGiao: string;
   phuongThucTt: string;
+  daThanhToan: boolean;
+  paymentUrl?: string;
   maCoupon?: string;
   phanTramGiam?: number;
   createdAt: string;
@@ -57,6 +59,9 @@ export const orderApi = {
 
   cancel: (id: number | string) =>
     apiClient.post<Order>(`/api/orders/${id}/cancel`),
+
+  getPaymentUrl: (id: number | string) =>
+    apiClient.post<string>(`/api/orders/${id}/payment-url`),
 };
 
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {

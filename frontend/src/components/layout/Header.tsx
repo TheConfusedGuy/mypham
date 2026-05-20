@@ -27,7 +27,7 @@ export function Header({
   const { totalCount } = useCart();
   const [orderCount, setOrderCount] = useState(0);
   const topCategories = categories.slice(0, 3);
-  const tenCuaHang = storeConfig?.tenCuaHang || "Ngọc Lan Beauty";
+  const tenCuaHang = storeConfig?.tenCuaHang || "Simply Beauty";
   const logoSrc = (storeConfig?.logoUrl && imageUrl(storeConfig.logoUrl)) || "/logo.png";
 
   useEffect(() => {

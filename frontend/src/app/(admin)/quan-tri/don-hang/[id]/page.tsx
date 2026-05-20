@@ -208,7 +208,18 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
             <p className="text-[11px] uppercase tracking-widest text-[color:var(--color-muted)]">
               Phương thức thanh toán
             </p>
-            <p className="mt-1 text-sm">{order.phuongThucTt}</p>
+            <p className="mt-1 text-sm font-medium">
+              {order.phuongThucTt === "MOMO" ? "Ví điện tử MoMo" : order.phuongThucTt}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-[11px] uppercase tracking-widest text-[color:var(--color-muted)]">
+              Trạng thái thanh toán
+            </p>
+            <p className={cn("mt-1 text-sm font-semibold", order.daThanhToan ? "text-emerald-700" : "text-rose-600")}>
+              {order.daThanhToan ? "✓ Đã thanh toán" : "✕ Chưa thanh toán"}
+            </p>
           </div>
 
           <div className="flex flex-col gap-2 border-t border-[color:var(--color-border)] pt-4 text-sm">

@@ -20,7 +20,7 @@ public class AuthSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        seedIfAbsent("admin@mypham.local", "Admin Ngọc Lan Beauty", "admin12345", User.Role.ADMIN);
+        seedIfAbsent("admin@mypham.local", "Admin Simply Beauty", "admin12345", User.Role.ADMIN);
         seedIfAbsent("thuha@email.com", "Nguyễn Thu Hà", "thuha12345", User.Role.CUSTOMER);
     }
 

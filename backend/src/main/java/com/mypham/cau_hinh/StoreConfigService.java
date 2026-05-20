@@ -54,7 +54,7 @@ public class StoreConfigService {
         return repository.findById(SINGLETON_ID).orElseGet(() -> {
             StoreConfig c = new StoreConfig();
             c.setId(SINGLETON_ID);
-            c.setTenCuaHang("Ngọc Lan Beauty");
+            c.setTenCuaHang("Simply Beauty");
             c.setUpdatedAt(Instant.now());
             return repository.save(c);
         });

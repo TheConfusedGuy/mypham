@@ -55,7 +55,7 @@ export default function DangNhapPage() {
       <div>
         <h1 className="font-serif text-4xl">Chào mừng trở lại</h1>
         <p className="mt-3 text-sm text-[color:var(--color-muted)]">
-          Đăng nhập để tiếp tục hành trình chăm da cùng Ngọc Lan Beauty.
+          Đăng nhập để tiếp tục hành trình chăm da cùng Simply Beauty.
         </p>
       </div>
 

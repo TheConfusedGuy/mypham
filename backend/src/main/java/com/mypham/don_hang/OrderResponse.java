@@ -11,6 +11,8 @@ public record OrderResponse(
         Order.TrangThai trangThai,
         String diaChiGiao,
         String phuongThucTt,
+        boolean daThanhToan,
+        String paymentUrl,
         String maCoupon,
         BigDecimal phanTramGiam,
         Instant createdAt,

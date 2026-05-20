@@ -125,8 +125,11 @@ export default function AdminOrdersPage() {
                 <td className="px-4 py-3 text-xs text-[color:var(--color-muted)]">
                   {formatDateTime(o.createdAt)}
                 </td>
-                <td className="px-4 py-3 text-right font-serif text-base">
-                  {formatCurrency(o.tongTien)}
+                <td className="px-4 py-3 text-right">
+                  <div className="font-serif text-base">{formatCurrency(o.tongTien)}</div>
+                  <div className={cn("text-[10px] font-semibold uppercase mt-0.5", o.daThanhToan ? "text-emerald-700" : "text-rose-600")}>
+                    {o.phuongThucTt === "MOMO" ? "MoMo" : "COD"} • {o.daThanhToan ? "Đã TT" : "Chưa TT"}
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={o.trangThai} />

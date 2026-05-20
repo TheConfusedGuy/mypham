@@ -52,6 +52,7 @@ export default function ThanhToanPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [hasSavedShipping, setHasSavedShipping] = useState(false);
+  const [phuongThucTt, setPhuongThucTt] = useState<"COD" | "MOMO">("COD");
 
   useEffect(() => {
     setBuyNow(buyNowStorage.get());
@@ -183,7 +184,7 @@ export default function ThanhToanPage() {
         })),
         diaChiGiao: `${hoTen} · ${soDienThoai} · ${fullAddress}`,
         maCoupon: maCoupon || undefined,
-        phuongThucTt: "COD",
+        phuongThucTt,
       });
 
       persistShipping();
@@ -193,6 +194,16 @@ export default function ThanhToanPage() {
       } else {
         clearCart();
       }
+
+      if (order.paymentUrl) {
+        toast.success(
+          "Đang chuyển hướng...",
+          "Đang chuyển tới cổng thanh toán MoMo"
+        );
+        window.location.href = order.paymentUrl;
+        return;
+      }
+
       toast.success(
         "Đặt hàng thành công",
         `Đơn LM-${String(order.id).padStart(6, "0")} đang được xử lý`,
@@ -279,15 +290,58 @@ export default function ThanhToanPage() {
 
           <section>
             <h2 className="mb-5 font-serif text-2xl">Phương thức thanh toán</h2>
-            <label className="flex cursor-pointer items-center gap-4 rounded-xl border border-[color:var(--color-ink)] bg-white p-4">
-              <input type="radio" name="payment" defaultChecked readOnly />
-              <div className="flex-1">
-                <p className="text-sm font-medium">COD — Thanh toán khi nhận hàng</p>
-                <p className="text-xs text-[color:var(--color-muted)]">
-                  Plan giai đoạn này dùng COD (mock)
-                </p>
-              </div>
-            </label>
+            <div className="flex flex-col gap-3">
+              <label
+                className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all duration-200 ${
+                  phuongThucTt === "COD"
+                    ? "border-[color:var(--color-ink)] bg-white ring-1 ring-[color:var(--color-ink)]"
+                    : "border-[color:var(--color-border)] bg-gray-50 hover:bg-gray-100"
+                }`}
+                onClick={() => setPhuongThucTt("COD")}
+              >
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={phuongThucTt === "COD"}
+                  onChange={() => setPhuongThucTt("COD")}
+                  className="accent-[color:var(--color-ink)]"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">COD — Thanh toán khi nhận hàng</p>
+                  <p className="text-xs text-[color:var(--color-muted)]">
+                    Thanh toán bằng tiền mặt khi shipper giao hàng
+                  </p>
+                </div>
+              </label>
+
+              <label
+                className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all duration-200 ${
+                  phuongThucTt === "MOMO"
+                    ? "border-[#ae2070] bg-[#ae2070]/5 ring-1 ring-[#ae2070]"
+                    : "border-[color:var(--color-border)] bg-gray-50 hover:bg-gray-100"
+                }`}
+                onClick={() => setPhuongThucTt("MOMO")}
+              >
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={phuongThucTt === "MOMO"}
+                  onChange={() => setPhuongThucTt("MOMO")}
+                  className="accent-[#ae2070]"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-[#ae2070]">Ví điện tử MoMo</p>
+                    <span className="rounded bg-[#ae2070]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#ae2070] uppercase">
+                      Sandbox
+                    </span>
+                  </div>
+                  <p className="text-xs text-[color:var(--color-muted)]">
+                    Thanh toán trực tuyến nhanh chóng qua Ví điện tử MoMo (Sandbox)
+                  </p>
+                </div>
+              </label>
+            </div>
           </section>
         </div>
 

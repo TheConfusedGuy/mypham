@@ -31,7 +31,7 @@ export default async function HomePage() {
         <div className="mx-auto grid w-full grid-cols-1 items-center gap-6 px-4 pt-5 md:w-4/5 md:gap-12 md:px-6 lg:grid-cols-2">
           <div className="flex flex-col gap-6">
             <span className="inline-flex w-fit items-center rounded-full bg-[color:var(--color-pastel-cream)] px-3 py-1 text-[11px] uppercase tracking-widest text-[color:var(--color-ink-soft)]">
-              ✦ Ngọc Lan Beauty · Mùa xuân 2026
+              ✦ Simply Beauty · Mùa xuân 2026
             </span>
 
             <h1 className="font-serif text-3xl leading-[1.05] sm:text-4xl md:text-6xl lg:text-7xl">

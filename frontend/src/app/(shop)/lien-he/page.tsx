@@ -11,7 +11,7 @@ export default async function LienHePage() {
   } catch {
   }
 
-  const tenCuaHang = config?.tenCuaHang || "Ngọc Lan Beauty";
+  const tenCuaHang = config?.tenCuaHang || "Simply Beauty";
   const diaChi = config?.diaChiDayDu;
   const sdt = config?.soDienThoai;
   const email = config?.emailLienHe;

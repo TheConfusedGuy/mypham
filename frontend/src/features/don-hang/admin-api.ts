@@ -11,6 +11,7 @@ export type AdminOrder = {
   trangThai: OrderStatus;
   diaChiGiao: string;
   phuongThucTt: string;
+  daThanhToan: boolean;
   maCoupon?: string;
   phanTramGiam?: number;
   createdAt: string;

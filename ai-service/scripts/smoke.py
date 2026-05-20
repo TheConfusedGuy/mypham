@@ -13,15 +13,15 @@ from app.config import settings  # noqa
 
 
 async def check_db() -> bool:
-    print("→ Check DB + pgvector...")
+    print("→ Check DB + double precision array...")
     try:
         conn = await asyncpg.connect(settings.db_dsn)
-        row = await conn.fetchrow("SELECT '[1,2,3]'::vector AS v")
-        print(f"  ✓ pgvector OK: {row['v']}")
+        row = await conn.fetchrow("SELECT ARRAY[1.0, 2.0, 3.0]::double precision[] AS v")
+        print(f"  ✓ DB Connection + Array OK: {row['v']}")
         await conn.close()
         return True
     except Exception as e:
-        print(f"  ✗ DB/pgvector FAILED: {e}")
+        print(f"  ✗ DB FAILED: {e}")
         return False
 
 

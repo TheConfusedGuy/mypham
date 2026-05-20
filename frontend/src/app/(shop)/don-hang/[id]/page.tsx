@@ -29,6 +29,7 @@ export default function OrderDetailPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [retryingPayment, setRetryingPayment] = useState(false);
 
   useEffect(() => {
     orderApi
@@ -58,6 +59,26 @@ export default function OrderDetailPage({ params }: PageProps) {
       );
     } finally {
       setCancelling(false);
+    }
+  }
+
+  async function handleRetryPayment() {
+    if (!order) return;
+    setRetryingPayment(true);
+    try {
+      const payUrl = await orderApi.getPaymentUrl(order.id);
+      toast.success(
+        "Chuyển hướng...",
+        "Đang chuyển tới cổng thanh toán MoMo Sandbox"
+      );
+      window.location.href = payUrl;
+    } catch (e) {
+      toast.error(
+        "Thanh toán thất bại",
+        e instanceof ApiError ? e.message : "Không thể tạo liên kết thanh toán"
+      );
+    } finally {
+      setRetryingPayment(false);
     }
   }
 
@@ -198,7 +219,18 @@ export default function OrderDetailPage({ params }: PageProps) {
             <p className="text-[11px] uppercase tracking-widest text-[color:var(--color-muted)]">
               Phương thức thanh toán
             </p>
-            <p className="mt-1 text-sm">{order.phuongThucTt}</p>
+            <p className="mt-1 text-sm font-medium">
+              {order.phuongThucTt === "MOMO" ? "Ví điện tử MoMo" : order.phuongThucTt}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-[11px] uppercase tracking-widest text-[color:var(--color-muted)]">
+              Trạng thái thanh toán
+            </p>
+            <p className={cn("mt-1 text-sm font-semibold", order.daThanhToan ? "text-emerald-700" : "text-rose-600")}>
+              {order.daThanhToan ? "✓ Đã thanh toán" : "✕ Chưa thanh toán"}
+            </p>
           </div>
 
           <div className="flex flex-col gap-2 border-t border-[color:var(--color-border)] pt-4 text-sm">
@@ -214,11 +246,21 @@ export default function OrderDetailPage({ params }: PageProps) {
           </div>
 
           <div className="flex items-baseline justify-between border-t border-[color:var(--color-border)] pt-4">
-            <span className="text-sm">Tổng đã trả</span>
+            <span className="text-sm">Tổng thanh toán</span>
             <span className="font-serif text-2xl">
               {formatCurrency(order.tongTien)}
             </span>
           </div>
+
+          {order.phuongThucTt === "MOMO" && !order.daThanhToan && order.trangThai !== "CANCELLED" && (
+            <Button
+              className="mt-2 w-full bg-[#ae2070] text-white hover:bg-[#90175b]"
+              onClick={handleRetryPayment}
+              disabled={retryingPayment}
+            >
+              {retryingPayment ? "Đang xử lý..." : "Thanh toán ngay bằng MoMo"}
+            </Button>
+          )}
         </aside>
       </div>
     </div>

@@ -44,7 +44,7 @@ async def _upsert_embedding(
 ) -> None:
     sql = """
         INSERT INTO product_embeddings (san_pham_id, embedding, source_text, updated_at)
-        VALUES ($1, $2::vector, $3, now())
+        VALUES ($1, $2, $3, now())
         ON CONFLICT (san_pham_id) DO UPDATE SET
             embedding   = EXCLUDED.embedding,
             source_text = EXCLUDED.source_text,
@@ -52,7 +52,7 @@ async def _upsert_embedding(
     """
     pool = get_pool()
     async with pool.acquire() as conn:
-        await conn.execute(sql, san_pham_id, vector_to_pg_literal(vec), text)
+        await conn.execute(sql, san_pham_id, vec, text)
 
 
 @router.post("/ingest")

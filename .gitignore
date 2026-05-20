@@ -1,0 +1,25 @@
+# Virtual environments
+ai-service/venv/
+ai-service/venv_win/
+
+# OS files
+.DS_Store
+**/.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+
+# Local databases & backups
+database/mypham_backup.sql
+
+# Environment files containing secrets
+**/.env
+**/.env.local
+
+# Native builds / temporary directories
+pgvector_build/
+backend/target/
+frontend/.next/
+frontend/node_modules/
+ai-service/__pycache__/

@@ -33,11 +33,19 @@ public class Order {
     @Column(name = "phuong_thuc_tt", length = 20)
     private String phuongThucTt = "COD";
 
+    @Column(name = "da_thanh_toan")
+    private boolean daThanhToan = false;
+
     @Column(name = "khuyen_mai_id")
     private Long khuyenMaiId;
 
-    @Column(name = "created_at", insertable = false, updatable = false)
+    @Column(name = "created_at", updatable = false)
     private Instant createdAt;
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) createdAt = Instant.now();
+    }
 
     public enum TrangThai {
         PENDING,

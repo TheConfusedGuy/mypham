@@ -27,10 +27,12 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderService {
 
     private final OrderRepository orderRepository;
@@ -43,6 +45,8 @@ public class OrderService {
     private final CouponRepository couponRepository;
     private final CouponService couponService;
     private final UserRepository userRepository;
+    private final MomoService momoService;
+    private final MomoConfig momoConfig;
 
     private User loadActiveUser(String email) {
         User user = userRepository.findByEmail(email)
@@ -150,7 +154,25 @@ public class OrderService {
             couponService.incrementUsed(coupon.getId());
         }
 
-        return toResponse(saved);
+        OrderResponse res = toResponse(saved);
+        if ("MOMO".equalsIgnoreCase(saved.getPhuongThucTt())) {
+            String payUrl = momoService.createPaymentUrl(saved);
+            res = new OrderResponse(
+                    res.id(),
+                    res.nguoiDungId(),
+                    res.tongTien(),
+                    res.trangThai(),
+                    res.diaChiGiao(),
+                    res.phuongThucTt(),
+                    res.daThanhToan(),
+                    payUrl,
+                    res.maCoupon(),
+                    res.phanTramGiam(),
+                    res.createdAt(),
+                    res.items()
+            );
+        }
+        return res;
     }
 
     @Transactional(readOnly = true)
@@ -182,6 +204,24 @@ public class OrderService {
         Order order = orderRepository.findByIdAndNguoiDungId(id, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("đơn hàng", id));
         return toResponse(order);
+    }
+
+    @Transactional(readOnly = true)
+    public String generatePaymentUrlForOrder(Long id, String email) {
+        User user = loadActiveUser(email);
+        Order order = orderRepository.findByIdAndNguoiDungId(id, user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("đơn hàng", id));
+        if (!"MOMO".equalsIgnoreCase(order.getPhuongThucTt())) {
+            throw new IllegalArgumentException("Đơn hàng không sử dụng phương thức thanh toán MoMo");
+        }
+        if (order.isDaThanhToan()) {
+            throw new IllegalArgumentException("Đơn hàng đã được thanh toán");
+        }
+        String payUrl = momoService.createPaymentUrl(order);
+        if (payUrl == null) {
+            throw new RuntimeException("Không thể tạo liên kết thanh toán MoMo. Vui lòng thử lại sau.");
+        }
+        return payUrl;
     }
 
     private OrderResponse toResponse(Order o) {
@@ -257,6 +297,8 @@ public class OrderService {
                     o.getTrangThai(),
                     o.getDiaChiGiao(),
                     o.getPhuongThucTt(),
+                    o.isDaThanhToan(),
+                    null,
                     maCoupon,
                     phanTramGiam,
                     o.getCreatedAt(),
@@ -381,6 +423,7 @@ public class OrderService {
                     o.getTrangThai(),
                     o.getDiaChiGiao(),
                     o.getPhuongThucTt(),
+                    o.isDaThanhToan(),
                     base.maCoupon(),
                     base.phanTramGiam(),
                     o.getCreatedAt(),
@@ -388,4 +431,56 @@ public class OrderService {
                     soLuongMon);
         }).toList();
     }
+
+    @Transactional
+    public void processMomoIPN(Map<String, Object> req) {
+        String partnerCode = (String) req.get("partnerCode");
+        String orderId = (String) req.get("orderId");
+        String requestId = (String) req.get("requestId");
+        String amount = String.valueOf(req.get("amount"));
+        String orderInfo = (String) req.get("orderInfo");
+        String message = (String) req.get("message");
+        String transId = String.valueOf(req.get("transId"));
+        Integer resultCode = null;
+        if (req.get("resultCode") instanceof Number) {
+            resultCode = ((Number) req.get("resultCode")).intValue();
+        }
+        String responseTime = String.valueOf(req.get("responseTime"));
+        String extraData = (String) req.get("extraData");
+        String signature = (String) req.get("signature");
+
+        String rawSignature = "accessKey=" + momoConfig.getAccessKey() +
+                "&amount=" + amount +
+                "&extraData=" + extraData +
+                "&message=" + message +
+                "&orderId=" + orderId +
+                "&orderInfo=" + orderInfo +
+                "&partnerCode=" + partnerCode +
+                "&requestId=" + requestId +
+                "&responseTime=" + responseTime +
+                "&resultCode=" + resultCode +
+                "&transId=" + transId;
+
+        if (!momoService.verifySignature(rawSignature, signature)) {
+            log.error("MoMo signature verification failed. Calculated Raw Signature: {}", rawSignature);
+            throw new IllegalArgumentException("Invalid MoMo signature");
+        }
+
+        if (resultCode != null && resultCode == 0) {
+            try {
+                String decoded = new String(java.util.Base64.getDecoder().decode(extraData), java.nio.charset.StandardCharsets.UTF_8);
+                Long dbOrderId = Long.parseLong(decoded);
+                Order order = orderRepository.findById(dbOrderId)
+                        .orElseThrow(() -> new ResourceNotFoundException("đơn hàng", dbOrderId));
+                order.setDaThanhToan(true);
+                orderRepository.save(order);
+                log.info("Order #{} marked as paid via MoMo IPN", dbOrderId);
+            } catch (Exception e) {
+                log.error("Failed to parse order ID or update status from MoMo IPN", e);
+            }
+        } else {
+            log.warn("MoMo payment failed for order {} with resultCode: {}", orderId, resultCode);
+        }
+    }
 }
+

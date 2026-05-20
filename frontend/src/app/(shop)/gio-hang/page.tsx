@@ -208,7 +208,7 @@ function CartLine({
 
       <div className="flex flex-1 flex-col gap-1">
         <p className="text-[11px] uppercase tracking-widest text-[color:var(--color-muted)]">
-          {(product.thuongHieu ?? "NGỌC LAN BEAUTY").toUpperCase()}
+          {(product.thuongHieu ?? "SIMPLY BEAUTY").toUpperCase()}
         </p>
         <Link
           href={`/san-pham/${product.id}`}

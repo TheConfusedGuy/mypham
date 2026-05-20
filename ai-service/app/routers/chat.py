@@ -16,7 +16,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from app.core.llm import GeminiClient, get_llm
-from app.core.retriever import retrieve_similar
+from app.core.retriever import retrieve_similar, retrieve_by_keyword
 from app.db import get_pool
 
 logger = logging.getLogger(__name__)
@@ -141,17 +141,21 @@ async def chat(req: ChatRequest) -> ChatResponse:
         raise HTTPException(status_code=400, detail="message quá dài (>1000 ký tự)")
 
     llm = get_llm()
-    # Embed query
+    # Embed query (với fallback sang tìm kiếm từ khóa cục bộ khi lỗi API)
+    products = []
+    use_offline_reply = False
+    
     try:
         if isinstance(llm, GeminiClient):
             query_vec = await llm.embed_query(msg)
         else:
             query_vec = await llm.embed(msg)
+        # Retrieve top-5
+        products = await retrieve_similar(query_vec, top_k=5)
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Embed failed: {e}") from e
-
-    # Retrieve top-5
-    products = await retrieve_similar(query_vec, top_k=5)
+        logger.warning("Embedding/Vector retrieval failed, falling back to keyword search: %s", e)
+        products = await retrieve_by_keyword(msg, top_k=5)
+        use_offline_reply = True
 
     # Compose prompt
     user_block = (
@@ -161,14 +165,31 @@ async def chat(req: ChatRequest) -> ChatResponse:
         f"Hãy trả lời khách bằng 2-4 câu tiếng Việt."
     )
 
-    try:
-        reply = await llm.chat(SYSTEM_PROMPT, user_block)
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"LLM failed: {e}") from e
+    reply = ""
+    if not use_offline_reply:
+        try:
+            reply = await llm.chat(SYSTEM_PROMPT, user_block)
+        except Exception as e:
+            logger.warning("LLM chat failed, falling back to offline reply generator: %s", e)
+            use_offline_reply = True
+
+    if use_offline_reply or not reply:
+        # Tự động tạo phản hồi offline thân thiện
+        if products:
+            product_list_str = "\n".join([
+                f"- **{p['tenSanPham']}** ({p['thuongHieu'] or 'Simply Beauty'} - {p['loaiDa'] or 'Mọi loại da'}): {p['gia']:,.0f}đ"
+                if p.get('gia') is not None else f"- **{p['tenSanPham']}**"
+                for p in products[:3]
+            ])
+            reply = (
+                "Chào bạn! Tôi đã tìm kiếm trong cửa hàng Simply Beauty và tìm thấy các sản phẩm phù hợp nhất với nhu cầu của bạn:\n\n"
+                f"{product_list_str}\n\n"
+                "Bạn có thể click trực tiếp vào các thẻ sản phẩm bên dưới để xem chi tiết và đặt hàng nhé!"
+            )
+        else:
+            reply = "Chào bạn! Cửa hàng có rất nhiều sản phẩm chăm sóc da chất lượng. Bạn có thể cho tôi biết rõ hơn về loại da hoặc nhu cầu cụ thể của mình không?"
 
     reply = (reply or "").strip()
-    if not reply:
-        reply = "Xin lỗi, tôi chưa tìm thấy sản phẩm phù hợp. Bạn có thể mô tả rõ hơn không?"
 
     # Validate sản phẩm trong reply phải thuộc context (chống hallucinate)
     valid_ids = {p["sanPhamId"] for p in products}

@@ -17,7 +17,7 @@ export async function Footer() {
   } catch {
   }
 
-  const tenCuaHang = config?.tenCuaHang || "Ngọc Lan Beauty";
+  const tenCuaHang = config?.tenCuaHang || "Simply Beauty";
   const logoSrc = (config?.logoUrl && imageUrl(config.logoUrl)) || "/logo.png";
   const diaChi = config?.diaChiDayDu;
   const sdt = config?.soDienThoai;

@@ -20,7 +20,7 @@ type Msg = {
 const WELCOME: Msg = {
   role: "ASSISTANT",
   content:
-    "Chào bạn! Mình là trợ lý của Ngọc Lan Beauty. Bạn đang tìm sản phẩm cho loại da nào, hay quan tâm vấn đề gì (mụn, khô, dầu, lão hoá…)? Mình sẽ gợi ý ngay nhé.",
+    "Chào bạn! Mình là trợ lý của Simply Beauty. Bạn đang tìm sản phẩm cho loại da nào, hay quan tâm vấn đề gì (mụn, khô, dầu, lão hoá…)? Mình sẽ gợi ý ngay nhé.",
   ts: Date.now(),
 };
 
@@ -124,7 +124,7 @@ export function ChatWidget() {
           <div className="flex items-center gap-2 border-b border-black/5 bg-[color:var(--color-pastel-cream)] px-4 py-3">
             <Sparkles className="size-5 text-[color:var(--color-primary)]" />
             <div className="flex-1">
-              <p className="font-serif text-base">Trợ lý Ngọc Lan</p>
+              <p className="font-serif text-base">Trợ lý Simply Beauty</p>
               <p className="text-[11px] text-[color:var(--color-muted)]">
                 Gợi ý cá nhân hoá theo loại da
               </p>

@@ -575,7 +575,7 @@ Khi thấy:
 
 Vào địa chỉ: **http://localhost:3000**
 
-Phải thấy trang chủ "Ngọc Lan Beauty" với hero, danh mục, sản phẩm nổi bật, và **nút chat tròn ở góc dưới phải**.
+Phải thấy trang chủ "Simply Beauty" với hero, danh mục, sản phẩm nổi bật, và **nút chat tròn ở góc dưới phải**.
 
 ### 16.3 Test 6 bước UI
 

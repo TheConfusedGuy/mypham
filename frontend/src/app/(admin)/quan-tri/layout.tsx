@@ -43,7 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     storeConfigApi.get().then(setStoreConfig).catch(() => setStoreConfig(null));
   }, []);
 
-  const tenCuaHang = storeConfig?.tenCuaHang || "Ngọc Lan Beauty";
+  const tenCuaHang = storeConfig?.tenCuaHang || "Simply Beauty";
   const logoSrc = (storeConfig?.logoUrl && imageUrl(storeConfig.logoUrl)) || "/logo.png";
 
   function handleLogout() {

@@ -6,7 +6,7 @@ import { imageUrl } from "@/features/san-pham/api";
 export const dynamic = "force-dynamic";
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
-  let tenCuaHang = "Ngọc Lan Beauty";
+  let tenCuaHang = "Simply Beauty";
   let logoSrc = "/logo.png";
   try {
     const cfg = await storeConfigApi.get();

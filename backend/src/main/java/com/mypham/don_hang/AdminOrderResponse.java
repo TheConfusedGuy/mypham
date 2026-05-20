@@ -14,6 +14,7 @@ public record AdminOrderResponse(
         Order.TrangThai trangThai,
         String diaChiGiao,
         String phuongThucTt,
+        boolean daThanhToan,
         String maCoupon,
         BigDecimal phanTramGiam,
         Instant createdAt,

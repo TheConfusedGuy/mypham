@@ -47,4 +47,19 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(
                 orderService.cancelMine(id, auth.getName())));
     }
+
+    @PostMapping("/{id}/payment-url")
+    public ResponseEntity<ApiResponse<String>> getPaymentUrl(
+            Authentication auth,
+            @PathVariable Long id
+    ) {
+        String payUrl = orderService.generatePaymentUrlForOrder(id, auth.getName());
+        return ResponseEntity.ok(ApiResponse.success(payUrl));
+    }
+
+    @PostMapping("/momo-ipn")
+    public ResponseEntity<Void> momoIPN(@RequestBody java.util.Map<String, Object> payload) {
+        orderService.processMomoIPN(payload);
+        return ResponseEntity.noContent().build();
+    }
 }
