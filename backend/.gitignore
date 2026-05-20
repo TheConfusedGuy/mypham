@@ -29,4 +29,3 @@ target/
 .env.local
 application-local.yml
 application-secret.yml
-uploads/
