@@ -18,7 +18,7 @@ export function formatCurrency(value: number): string {
   return `${vndNumberFormatter.format(value)}đ`;
 }
 
-export function formatDate(input: any): string {
+export function formatDate(input: unknown): string {
   if (input == null) return "—";
   try {
     let d: Date;
@@ -26,18 +26,18 @@ export function formatDate(input: any): string {
       const [year, month, day, hour = 0, minute = 0, second = 0] = input;
       d = new Date(year, month - 1, day, hour, minute, second);
     } else {
-      d = new Date(input);
+      d = new Date(input as string | number | Date);
     }
     if (isNaN(d.getTime())) {
       return String(input);
     }
     return dateFormatter.format(d);
-  } catch (e) {
+  } catch {
     return String(input);
   }
 }
 
-export function formatDateTime(input: any): string {
+export function formatDateTime(input: unknown): string {
   if (input == null) return "—";
   try {
     let d: Date;
@@ -45,13 +45,13 @@ export function formatDateTime(input: any): string {
       const [year, month, day, hour = 0, minute = 0, second = 0] = input;
       d = new Date(year, month - 1, day, hour, minute, second);
     } else {
-      d = new Date(input);
+      d = new Date(input as string | number | Date);
     }
     if (isNaN(d.getTime())) {
       return String(input);
     }
     return dateTimeFormatter.format(d);
-  } catch (e) {
+  } catch {
     return String(input);
   }
 }
