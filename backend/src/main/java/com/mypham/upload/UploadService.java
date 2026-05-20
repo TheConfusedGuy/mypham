@@ -1,5 +1,7 @@
 package com.mypham.upload;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.mypham.common.exception.BusinessException;
 import com.mypham.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -12,13 +14,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UploadService {
+
+    private final Cloudinary cloudinary;
 
     @Value("${app.uploads.dir:uploads}")
     private String uploadsDir;
@@ -49,25 +53,20 @@ public class UploadService {
                         "Định dạng file không khớp: header=" + claimedType + " nhưng nội dung=" + detectedType);
             }
 
-            Path dir = Paths.get(uploadsDir).toAbsolutePath();
-            Files.createDirectories(dir);
+            // Tải ảnh lên Cloudinary
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(bytes, ObjectUtils.asMap(
+                    "folder", "mypham",
+                    "resource_type", "image"
+            ));
 
-            String ext = switch (detectedType) {
-                case "image/jpeg" -> ".jpg";
-                case "image/png" -> ".png";
-                case "image/webp" -> ".webp";
-                default -> "";
-            };
-            String filename = UUID.randomUUID() + ext;
-            Path target = dir.resolve(filename);
-            Files.write(target, bytes);
+            String url = (String) uploadResult.get("secure_url");
+            String filename = (String) uploadResult.get("public_id");
 
-            String url = "/uploads/" + filename;
-            log.info("Uploaded {} -> {} ({})", file.getOriginalFilename(), url, detectedType);
+            log.info("Uploaded to Cloudinary: {} -> {} (type: {})", file.getOriginalFilename(), url, detectedType);
             return new UploadResponse(url, filename, file.getSize());
         } catch (IOException e) {
             throw new BusinessException(ErrorCode.INTERNAL_ERROR,
-                    "Lỗi lưu file: " + e.getMessage());
+                    "Lỗi upload Cloudinary: " + e.getMessage());
         }
     }
 
@@ -91,18 +90,46 @@ public class UploadService {
     }
 
     public void deleteByUrl(String url) {
-        if (url == null || !url.startsWith("/uploads/")) return;
-        String filename = url.substring("/uploads/".length());
-        if (filename.isBlank() || filename.contains("/") || filename.contains("..")) {
-            log.warn("Skip suspicious filename: {}", filename);
-            return;
-        }
-        try {
-            Path target = Paths.get(uploadsDir).toAbsolutePath().resolve(filename);
-            boolean deleted = Files.deleteIfExists(target);
-            log.info("Delete file {}: {}", target, deleted ? "ok" : "not found");
-        } catch (IOException e) {
-            log.warn("Lỗi xoá file {}: {}", url, e.getMessage());
+        if (url == null || url.isBlank()) return;
+
+        if (url.contains("res.cloudinary.com")) {
+            try {
+                // Trích xuất publicId từ Cloudinary URL (ví dụ: https://res.cloudinary.com/.../mypham/filename.jpg)
+                int idx = url.indexOf("image/upload/");
+                if (idx != -1) {
+                    String path = url.substring(idx + "image/upload/".length());
+                    // Loại bỏ tiền tố phiên bản nếu có (ví dụ: v12345678/mypham/filename.jpg)
+                    if (path.startsWith("v")) {
+                        int slashIdx = path.indexOf("/");
+                        if (slashIdx != -1) {
+                            path = path.substring(slashIdx + 1);
+                        }
+                    }
+                    // Loại bỏ phần mở rộng rộng đuôi file
+                    int dotIdx = path.lastIndexOf(".");
+                    String publicId = (dotIdx != -1) ? path.substring(0, dotIdx) : path;
+
+                    log.info("Deleting image from Cloudinary with public ID: {}", publicId);
+                    cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+                }
+            } catch (Exception e) {
+                log.warn("Lỗi xoá file trên Cloudinary {}: {}", url, e.getMessage());
+            }
+        } else {
+            // Giữ lại logic xoá file local cũ để tương thích ngược với các ảnh seed đã lưu trong Git
+            if (!url.startsWith("/uploads/")) return;
+            String filename = url.substring("/uploads/".length());
+            if (filename.isBlank() || filename.contains("/") || filename.contains("..")) {
+                log.warn("Skip suspicious filename: {}", filename);
+                return;
+            }
+            try {
+                Path target = Paths.get(uploadsDir).toAbsolutePath().resolve(filename);
+                boolean deleted = Files.deleteIfExists(target);
+                log.info("Delete file local {}: {}", target, deleted ? "ok" : "not found");
+            } catch (IOException e) {
+                log.warn("Lỗi xoá file local {}: {}", url, e.getMessage());
+            }
         }
     }
 }
