@@ -1,5 +1,8 @@
-function required(name: string, value: string | undefined): string {
-  if (!value) throw new Error(`Missing required env var: ${name}`);
+function required(name: string, value: string | undefined, defaultValue: string = "http://localhost:8080"): string {
+  if (!value) {
+    console.warn(`[Warning] Missing env var: ${name}. Falling back to default: ${defaultValue}`);
+    return defaultValue;
+  }
   return value;
 }
 
